@@ -88,6 +88,7 @@ export class GLApp {
 
   constructor(opts:GLAppOpts) {
     this._regl = opts.regl;
+    console.log(this._regl.limits);
     if (opts.loader) {
       this._reglLoader = opts.loader;
     } else {
@@ -102,9 +103,12 @@ export class GLApp {
     // this.camera.setPosition([10, 10, 10]);
     this.fbo = this._regl.framebuffer({
       colors: [
-        this._regl.texture({type: 'float'}),  // albedo
-        this._regl.texture({type: 'float'}), // normal
-        this._regl.texture({type: 'float'}) // position
+        // this._regl.texture({type: 'float'}),  // albedo
+        // this._regl.texture({type: 'float'}), // normal
+        // this._regl.texture({type: 'float'}) // position
+        this._regl.texture(),  // albedo
+        this._regl.texture(), // normal
+        this._regl.texture() // position
       ],
       depth: true,
     });

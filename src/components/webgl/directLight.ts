@@ -41,7 +41,8 @@ export default function glDirectLight (regl: REGL, loader: REGLLoader) {
     `,
     attributes: {
       // We implement the full-screen pass by using a full-screen triangle
-      position: [ -4, -4, 4, -4, 0, 4 ]
+      // position: [ -4, -4, 4, -4, 0, 4 ]
+      position: [ -1, -1, 3, -1, -1, 3 ]
     },
     uniforms: {
       albedoTex: prop('fbo')('color' as any)('0').prop,

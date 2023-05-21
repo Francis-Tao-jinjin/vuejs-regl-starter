@@ -1,35 +1,45 @@
 <script lang="ts">
 import { ref } from 'vue'
-import createREGL, { type Regl } from 'regl';
+import createREGL from 'regl/dist/regl.unchecked';
 import { GLApp } from '../components/gl-app';
 import { setReglInstance } from '../components/globals';
+import canvasFit from 'canvas-fit';
 
 export default {
   setup() {
     const reglContainer = ref<HTMLDivElement|null>(null);
-    const reglInstance = ref<Regl|null>(null);
+    const reglCanvas = ref<HTMLCanvasElement|null>(null);
+    const reglInstance = ref(null);
     const glApp = ref<GLApp|null>(null);
-    return { reglContainer, reglInstance, glApp };
+    return { reglContainer, reglCanvas, reglInstance, glApp };
   },
   mounted() {
     console.log('>> onMounted');
+    const canvas = this.$refs.reglCanvas as HTMLCanvasElement;
+    const gl = canvas.getContext("webgl2");
+
+    window.addEventListener('resize', canvasFit(canvas), false);
+    console.log(gl);
     const regl = createREGL({
-      container: this.$refs.regContainer as HTMLDivElement,
+      canvas,
+      gl: gl as WebGL2RenderingContext,
+      container: this.$refs.reglContainer as HTMLDivElement,
       extensions: [
-        'OES_element_index_uint',
-        'OES_standard_derivatives',
+        // 'OES_element_index_uint',
+        // 'OES_standard_derivatives',
       ],
       optionalExtensions: [
-        'WEBGL_draw_buffers',
-        'OES_texture_float',
+        // 'WEBGL_draw_buffers',
+        // 'OES_texture_float',
         'EXT_color_buffer_float',
         'OES_texture_float_linear',
-        'OES_texture_half_float',
+        // 'OES_texture_half_float',
         'EXT_color_buffer_half_float',
-        'OES_texture_half_float_linear',
-        'WEBGL_depth_texture',
-        'EXT_shader_texture_lod',
-        'EXT_disjoint_timer_query',
+        // 'OES_texture_half_float_linear',
+        // 'WEBGL_depth_texture',
+        // 'EXT_shader_texture_lod',
+        // 'EXT_disjoint_timer_query',
+        'EXT_disjoint_timer_query_webgl2'
       ],
       attributes: {
         alpha: true,
@@ -47,7 +57,8 @@ export default {
 </script>
 
 <template>
-  <div ref="regContainer" id="regl-view"> 
+  <div ref="reglContainer" id="regl-view"> 
+    <canvas ref="reglCanvas"/>
     <!-- Regl will automatically append a Canvas to the container, you can also create the Canvas by yourself -->
   </div>
 </template>
