@@ -7,16 +7,19 @@ import type { Mesh } from "../mesh";
 // import gldirectLight from "./directLight";
 
 import glTriangle from "./triangle/triangle";
-import glRectangle, { type GLRectangleProps} from "./triangle/rect";
+import glRectangle, { type GLRectangleProps} from "./quad/rect";
 import { gen2DRectPositions } from "@/utils/gen-rect-pos";
+import { ConvolutionKernel, KernelNames, type KernelName, ConvolutionKernelWeights } from "@/utils/convmatrix";
 
 export type GLMainProps = {
   camera: Camera;
   fbo: _REGL.Framebuffer2D;
-  bunnyMesh: Mesh,
-  planeMesh: Mesh,
-  bunnyConfig: any,
-  planeConfig: any,
+  // bunnyMesh: Mesh,
+  // planeMesh: Mesh,
+  // bunnyConfig: any,
+  // planeConfig: any,
+  texture: _REGL.Texture2D,
+  convKernel: number|KernelName;
 };
 
 function main(regl: REGL, loader: REGLLoader) {
@@ -41,6 +44,7 @@ function main(regl: REGL, loader: REGLLoader) {
         invView: renderProps('camera')('invView').prop,
         invProjection: renderProps('camera')('invProjection').prop,
         invViewProj: renderProps('camera')('invViewProjection').prop,
+        u_resolution: [regl.context('viewportWidth'), regl.context('viewportHeight')],
       }
     },
     true
@@ -64,33 +68,27 @@ function main(regl: REGL, loader: REGLLoader) {
   //   });
   // }
 
-  const rectConfig = [] as GLRectangleProps[];
-  for (let i = 0; i < 20; i++) {
-    const x = Math.random() * 2 - 1;
-    const y = Math.random() * 2 - 1;
-    const w = Math.random() * 0.3;
-    const h = Math.random() * 0.3;
-    rectConfig.push({
-      positions: gen2DRectPositions(x, y, w, h),
-      color: [Math.random(), Math.random(), Math.random(), 1],
-    });
-  }
+  const rectColor = [Math.random(), Math.random(), Math.random(), 1];
   
   function drawMain(props: GLMainProps) {
+
+    const kernel = typeof props.convKernel === 'string' ? ConvolutionKernel[props.convKernel] : ConvolutionKernel[KernelNames[props.convKernel]];
+    let kernelWeight = kernel.reduce((acc, cur) => acc + cur, 0);
+    kernelWeight = kernelWeight <= 0 ? 1 : kernelWeight;
+
     setup(props, ({tick}) => {
       regl.clear({
         color: [0, 150/255, 136/255, 1],
         // color: [0, 0, 0, 255],
         depth: 1,
       });
-      drawTriangle([{
-        color: [1, 0, 0, 1],
-        positions: [ -1, -1, 1, -1, -1, 1 ].map((v: number) => (Math.sin(tick * 0.01) * 0.5 + 0.5) * v),
-      }, {
-        color: [0.9, 0, 0.6, 1],
-        positions: [ -1, -1, 1, -1, 0, 1 ].map((v: number) => (Math.sin(tick * 0.015) * 0.5 + 0.5) * v),
-      }]);
-      drawRect(rectConfig);
+      drawRect({
+        texture: props.texture,
+        positions: gen2DRectPositions(0, 0, 1, 1),
+        color: rectColor,
+        kernel: kernel,
+        kernelWeight: kernelWeight,
+      } as GLRectangleProps);
     });
   }
 

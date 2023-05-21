@@ -7,67 +7,68 @@ import { BoxMesh } from './primitives/box';
 import { Mesh } from './mesh';
 import bunny from 'bunny';
 import nomals from 'angle-normals';
+import type { KernelName } from '@/utils/convmatrix';
 
 type GLAppOpts = {
   regl:createREGL.Regl;
   loader?:REGLLoader;
 }
 
-function negMod (x:number, n:number) {  // modulo that works for negative numbers
-  return ((x % n) + n) % n
-}
+// function negMod (x:number, n:number) {  // modulo that works for negative numbers
+//   return ((x % n) + n) % n
+// }
 
-function genGeoConfig() {
-  const S = 400 // plane size
-  const T = 0.1 // plane thickness
-  const C = [0.45, 0.45, 0.45] // plane color
+// function genGeoConfig() {
+//   const S = 400 // plane size
+//   const T = 0.1 // plane thickness
+//   const C = [0.45, 0.45, 0.45] // plane color
 
-  //
-  // First we place out lots of bunnies.
-  //
-  const bunnies = [];
-  const N_BUNNIES = 3 // number of bunnies.
+//   //
+//   // First we place out lots of bunnies.
+//   //
+//   const bunnies = [];
+//   const N_BUNNIES = 3 // number of bunnies.
 
-  // There's lots of magic numbers below, and they were simply chosen because
-  // they make it looks good. There's no deeper meaning behind them.
-  for (let x = -N_BUNNIES; x <= +N_BUNNIES; x++) {
-    for (let z = -N_BUNNIES; z <= +N_BUNNIES; z++) {
-      // we use these two to generate pseudo-random numbers.
-      const xs = x / (N_BUNNIES + 1)
-      const zs = z / (N_BUNNIES + 1)
+//   // There's lots of magic numbers below, and they were simply chosen because
+//   // they make it looks good. There's no deeper meaning behind them.
+//   for (let x = -N_BUNNIES; x <= +N_BUNNIES; x++) {
+//     for (let z = -N_BUNNIES; z <= +N_BUNNIES; z++) {
+//       // we use these two to generate pseudo-random numbers.
+//       const xs = x / (N_BUNNIES + 1)
+//       const zs = z / (N_BUNNIES + 1)
 
-      // pseudo-random color
-      const c = [
-        ((Math.abs(3 * x + 5 * z + 100) % 10) / 10) * 0.64,
-        ((Math.abs(64 * x + x * z + 23) % 13) / 13) * 0.67,
-        ((Math.abs(143 * x * z + x * z * z + 19) % 11) / 11) * 0.65
-      ]
+//       // pseudo-random color
+//       const c = [
+//         ((Math.abs(3 * x + 5 * z + 100) % 10) / 10) * 0.64,
+//         ((Math.abs(64 * x + x * z + 23) % 13) / 13) * 0.67,
+//         ((Math.abs(143 * x * z + x * z * z + 19) % 11) / 11) * 0.65
+//       ]
 
-      const A = S / 20 // max bunny displacement amount.
-      // compute random bunny displacement
-      const xd = (negMod(z * z * 231 + x * x * 343, 24) / 24) * 0.97 * A
-      const zd = (negMod(z * x * 198 + x * x * z * 24, 25) / 25) * 0.987 * A
+//       const A = S / 20 // max bunny displacement amount.
+//       // compute random bunny displacement
+//       const xd = (negMod(z * z * 231 + x * x * 343, 24) / 24) * 0.97 * A
+//       const zd = (negMod(z * x * 198 + x * x * z * 24, 25) / 25) * 0.987 * A
 
-      // random bunny scale.
-      const s = ((Math.abs(3024 * z + 5239 * x + 1321) % 50) / 50) * 3.4 + 0.9
-      // random bunny rotation
-      const r = ((Math.abs(9422 * z * x + 3731 * x * x + 2321) % 200) / 200) * 2 * Math.PI
+//       // random bunny scale.
+//       const s = ((Math.abs(3024 * z + 5239 * x + 1321) % 50) / 50) * 3.4 + 0.9
+//       // random bunny rotation
+//       const r = ((Math.abs(9422 * z * x + 3731 * x * x + 2321) % 200) / 200) * 2 * Math.PI
 
-      // translation
-      const t = [xs * S / 2.0 + xd, -0.2, zs * S / 2.0 + zd]
+//       // translation
+//       const t = [xs * S / 2.0 + xd, -0.2, zs * S / 2.0 + zd]
 
-      bunnies.push({scale: s, translate: t, color: c, yRotate: r})
-    }
-  }
-  return {
-    bunniesConfig: bunnies,
-    planeConfig: {
-      scale: [S, T, S],
-      translate: [0.0, -.5, 0.0],
-      color: C,
-    },
-  }
-}
+//       bunnies.push({scale: s, translate: t, color: c, yRotate: r})
+//     }
+//   }
+//   return {
+//     bunniesConfig: bunnies,
+//     planeConfig: {
+//       scale: [S, T, S],
+//       translate: [0.0, -.5, 0.0],
+//       color: C,
+//     },
+//   }
+// }
 
 export class GLApp {
   private _regl: createREGL.Regl;
@@ -80,11 +81,14 @@ export class GLApp {
   public camera: Camera;
 
   public fbo: REGL.Framebuffer2D;
+  public kernel: KernelName = 'Identity';
 
-  public bunnyMesh: Mesh;
-  public planeMesh: Mesh;
-  public bunnyConfig: any;
-  public planeConfig: any;
+  // public bunnyMesh: Mesh;
+  // public planeMesh: Mesh;
+  // public bunnyConfig: any;
+  // public planeConfig: any;
+
+  public texture!: REGL.Texture2D;
 
   constructor(opts:GLAppOpts) {
     this._regl = opts.regl;
@@ -113,11 +117,11 @@ export class GLApp {
       depth: true,
     });
 
-    this.planeMesh = new BoxMesh();
-    this.bunnyMesh = new Mesh(bunny.cells, bunny.positions, nomals(bunny.cells, bunny.positions));
-    const { bunniesConfig, planeConfig } = genGeoConfig();
-    this.bunnyConfig = bunniesConfig;
-    this.planeConfig = planeConfig;
+    // this.planeMesh = new BoxMesh();
+    // this.bunnyMesh = new Mesh(bunny.cells, bunny.positions, nomals(bunny.cells, bunny.positions));
+    // const { bunniesConfig, planeConfig } = genGeoConfig();
+    // this.bunnyConfig = bunniesConfig;
+    // this.planeConfig = planeConfig;
   }
 
   public startReglFrame = () => {
@@ -148,10 +152,12 @@ export class GLApp {
     this._glDraw({
       camera: this.camera,
       fbo: this.fbo,
-      bunnyMesh: this.bunnyMesh,
-      planeMesh: this.planeMesh,
-      bunnyConfig: this.bunnyConfig,
-      planeConfig: this.planeConfig,
+      // bunnyMesh: this.bunnyMesh,
+      // planeMesh: this.planeMesh,
+      // bunnyConfig: this.bunnyConfig,
+      // planeConfig: this.planeConfig,
+      texture: this.texture,
+      convKernel: this.kernel,
     });
   }
 }

@@ -4,17 +4,43 @@ import createREGL from 'regl/dist/regl.unchecked';
 import { GLApp } from '../components/gl-app';
 import { setReglInstance } from '../components/globals';
 import canvasFit from 'canvas-fit';
+import textureURL from '../assets/tex.png';
+import Select from '../vue-components/select.vue';
+import { KernelNames } from '@/utils/convmatrix';
 
 export default {
+  components: {
+    Select,
+  },
   setup() {
     const reglContainer = ref<HTMLDivElement|null>(null);
     const reglCanvas = ref<HTMLCanvasElement|null>(null);
     const reglInstance = ref(null);
+    const texturePreview = ref<HTMLImageElement|null>(null);
     const glApp = ref<GLApp|null>(null);
-    return { reglContainer, reglCanvas, reglInstance, glApp };
+
+    return {
+      reglContainer,
+      reglCanvas,
+      reglInstance,
+      glApp,
+      texturePreview,
+    };
+  },
+  data() {
+    return {
+      kernel: KernelNames[0],
+    };
+  },
+  watch: {
+    kernel: function (val) {
+      console.log('>> kernel', val);
+      if (this.glApp) {
+        this.glApp.kernel = val;
+      }
+    },
   },
   mounted() {
-    console.log('>> onMounted');
     const canvas = this.$refs.reglCanvas as HTMLCanvasElement;
     const gl = canvas.getContext("webgl2");
 
@@ -49,15 +75,45 @@ export default {
     });
     this.reglInstance = regl;
     setReglInstance(regl);
-    
     this.glApp = new GLApp({regl});
-    this.glApp.startReglFrame();
+
+    const texturePreview = (this.$refs.texturePreview as HTMLImageElement);
+    texturePreview.src = textureURL;
+    (new Promise((resolve) => {
+      texturePreview.onload = () => {
+        const texture = regl.texture(texturePreview);
+        if (this.glApp) {
+          this.glApp.texture = texture;
+        }
+        resolve(true);
+      }
+    })).then(() => {
+      this.onResoucesLoaded();
+    });
+  },
+  methods: {
+    onResoucesLoaded() {
+      console.log('>> onResoucesLoaded');
+      this.glApp?.startReglFrame();
+    }
   }
 }
 </script>
 
 <template>
-  <div ref="reglContainer" id="regl-view"> 
+  <div class="ui-container">
+    <div class="row">
+      <div class="col">
+        <h2>Texture Preview</h2>
+        <img ref="texturePreview" alt="texture prview" id="texture-preview" width="125" height="125" />
+      </div>
+      <div class="col" style="place-self: flex-start;">
+        <h3>Choose a convolution kernel</h3>
+        <Select v-model="kernel"></Select>
+      </div>
+    </div>
+  </div>
+  <div ref="reglContainer" id="regl-view">
     <canvas ref="reglCanvas"/>
     <!-- Regl will automatically append a Canvas to the container, you can also create the Canvas by yourself -->
   </div>
@@ -67,5 +123,24 @@ export default {
 #regl-view {
   width: 100%;
   height: 100%;
+}
+
+.ui-container {
+  z-index: 2;
+  position: absolute;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>
