@@ -8,18 +8,19 @@ import type { Mesh } from "../mesh";
 
 import glTriangle from "./triangle/triangle";
 import glRectangle, { type GLRectangleProps} from "./quad/rect";
+import glImgProcess, { type GLImgProcessProps } from './pingPong/img-process';
+
 import { gen2DRectPositions } from "@/utils/gen-rect-pos";
 import { ConvolutionKernel, KernelNames, type KernelName, ConvolutionKernelWeights } from "@/utils/convmatrix";
+import type { vec4 } from "gl-matrix";
 
 export type GLMainProps = {
   camera: Camera;
-  fbo: _REGL.Framebuffer2D;
-  // bunnyMesh: Mesh,
-  // planeMesh: Mesh,
-  // bunnyConfig: any,
-  // planeConfig: any,
+  // fbo: _REGL.Framebuffer2D;
   texture: _REGL.Texture2D,
-  convKernel: number|KernelName;
+  convKernel: KernelName;
+  convKernelArr: KernelName[];
+  fbos: _REGL.Framebuffer2D[];
 };
 
 function main(regl: REGL, loader: REGLLoader) {
@@ -30,6 +31,7 @@ function main(regl: REGL, loader: REGLLoader) {
 
   const drawTriangle = loader.require(glTriangle);
   const drawRect = loader.require(glRectangle);
+  const darwImgProcess = loader.require(glImgProcess);
 
   const renderProps = safeProp<GLMainProps>(regl);
   const setup = <(props: any, body:(ctx: _REGL.DefaultContext) => void) => void>loader.cache(
@@ -68,13 +70,16 @@ function main(regl: REGL, loader: REGLLoader) {
   //   });
   // }
 
-  const rectColor = [Math.random(), Math.random(), Math.random(), 1];
-  
+  const rectColor = [Math.random(), Math.random(), Math.random(), 1] as vec4;
+  const rectPos = gen2DRectPositions(0, 0, 1, 1);
+
   function drawMain(props: GLMainProps) {
 
-    const kernel = typeof props.convKernel === 'string' ? ConvolutionKernel[props.convKernel] : ConvolutionKernel[KernelNames[props.convKernel]];
-    let kernelWeight = kernel.reduce((acc, cur) => acc + cur, 0);
-    kernelWeight = kernelWeight <= 0 ? 1 : kernelWeight;
+    const kernel = ConvolutionKernel[props.convKernel];
+    const kernelWeight = ConvolutionKernelWeights[props.convKernel];
+
+    const processKernels = props.convKernelArr.map((kernelName) => ConvolutionKernel[kernelName]);
+    const processKernelWeights = props.convKernelArr.map((kernelName) => ConvolutionKernelWeights[kernelName])
 
     setup(props, ({tick}) => {
       regl.clear({
@@ -82,13 +87,44 @@ function main(regl: REGL, loader: REGLLoader) {
         // color: [0, 0, 0, 255],
         depth: 1,
       });
-      drawRect({
-        texture: props.texture,
-        positions: gen2DRectPositions(0, 0, 1, 1),
+
+      props.fbos[0].use(() => {
+        darwImgProcess({
+          fullscreen: 1,
+          texture: props.texture,
+          positions: rectPos,
+          color: rectColor,
+          kernel: processKernels[0],
+          kernelWeight: processKernelWeights[0],
+        } as GLImgProcessProps);
+      });
+      props.fbos[1].use(() => {
+        darwImgProcess({
+          fullscreen: 1,
+          texture: props.fbos[0],
+          positions: rectPos,
+          color: rectColor,
+          kernel: processKernels[1],
+          kernelWeight: processKernelWeights[1],
+        } as GLImgProcessProps);
+      });
+
+      darwImgProcess({
+        flipY: 1,
+        texture: props.fbos[1],
+        positions: rectPos,
         color: rectColor,
         kernel: kernel,
         kernelWeight: kernelWeight,
-      } as GLRectangleProps);
+      } as GLImgProcessProps);
+
+      // drawRect({
+      //   texture: props.texture,
+      //   positions: gen2DRectPositions(0, 0, 1, 1),
+      //   color: rectColor,
+      //   kernel: kernel,
+      //   kernelWeight: kernelWeight,
+      // } as GLRectangleProps);
     });
   }
 

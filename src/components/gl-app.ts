@@ -80,15 +80,14 @@ export class GLApp {
 
   public camera: Camera;
 
-  public fbo: REGL.Framebuffer2D;
+  // public fbo: REGL.Framebuffer2D;
   public kernel: KernelName = 'Identity';
 
-  // public bunnyMesh: Mesh;
-  // public planeMesh: Mesh;
-  // public bunnyConfig: any;
-  // public planeConfig: any;
-
   public texture!: REGL.Texture2D;
+  public fbos: REGL.Framebuffer2D[];
+  public kernels: KernelName[] = ['Emboss', 'EdgeEnhanceMore'];
+
+  public textureSize = 512;
 
   constructor(opts:GLAppOpts) {
     this._regl = opts.regl;
@@ -104,24 +103,17 @@ export class GLApp {
     this.camera.phi = 0.39269908169872414; 
     this.camera.theta = 0.7853981633974483; // Arccos(PI/4)
 
-    // this.camera.setPosition([10, 10, 10]);
-    this.fbo = this._regl.framebuffer({
-      colors: [
-        // this._regl.texture({type: 'float'}),  // albedo
-        // this._regl.texture({type: 'float'}), // normal
-        // this._regl.texture({type: 'float'}) // position
-        this._regl.texture(),  // albedo
-        this._regl.texture(), // normal
-        this._regl.texture() // position
-      ],
-      depth: true,
-    });
+    this.fbos = (Array(2)).fill(0).map(() => this._regl.framebuffer(this.textureSize));
 
-    // this.planeMesh = new BoxMesh();
-    // this.bunnyMesh = new Mesh(bunny.cells, bunny.positions, nomals(bunny.cells, bunny.positions));
-    // const { bunniesConfig, planeConfig } = genGeoConfig();
-    // this.bunnyConfig = bunniesConfig;
-    // this.planeConfig = planeConfig;
+    // this.camera.setPosition([10, 10, 10]);
+    // this.fbo = this._regl.framebuffer({
+    //   colors: [
+    //     this._regl.texture(),  // albedo
+    //     this._regl.texture(), // normal
+    //     this._regl.texture() // position
+    //   ],
+    //   depth: true,
+    // });
   }
 
   public startReglFrame = () => {
@@ -148,16 +140,14 @@ export class GLApp {
 
   public renderFrame = (context: REGL.DefaultContext) => {
     this.camera.updateCamera();
-    this.fbo.resize(context.viewportWidth, context.viewportHeight);
+    // this.fbo.resize(context.viewportWidth, context.viewportHeight);
     this._glDraw({
       camera: this.camera,
-      fbo: this.fbo,
-      // bunnyMesh: this.bunnyMesh,
-      // planeMesh: this.planeMesh,
-      // bunnyConfig: this.bunnyConfig,
-      // planeConfig: this.planeConfig,
+      // fbo: this.fbo,
       texture: this.texture,
       convKernel: this.kernel,
+      convKernelArr: this.kernels,
+      fbos: this.fbos,
     });
   }
 }

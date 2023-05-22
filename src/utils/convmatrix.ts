@@ -13,7 +13,6 @@ export const ConvolutionKernel = {
   PrewittHorizontal: [1, 0, -1, 1, 0, -1, 1, 0, -1],
   PrewittVertical: [1, 1, 1, 0, 0, 0, -1, -1, -1],
   Laplacian: [0, 1, 0, 1, -4, 1, 0, 1, 0],
-  LaplacianOfGaussian: [0, 0, -1, 0, 0, -1, -2, -1, -1],
   Laplacian3: [1, 1, 1, 1, -8, 1, 1, 1, 1],
   Laplacian3OfGaussian: [0, 1, 1, 2, 4, 2, 1, 1, 0],
 }
@@ -21,23 +20,34 @@ export const ConvolutionKernel = {
 export const KernelNames = Object.keys(ConvolutionKernel) as (keyof typeof ConvolutionKernel)[];
 export type KernelName = typeof KernelNames[number];
 
+function calcKernelWeight(kernel: number[]): number {
+  const val = kernel.reduce((prev, curr) => prev + curr, 0);
+  return val <= 0 ? 1 : val;
+}
+
+function computeKernelWeight(kernel: number[]) {
+  const weight = kernel.reduce(function(prev, curr) {
+    return prev + curr;
+  });
+  return weight <= 0 ? 1 : weight;
+}
+
 export const ConvolutionKernelWeights: Record<KernelName, number> = {
-  Identity: 1,
-  EdgeDetection: 1,
-  Sharpen: 1,
-  BoxBlur: 1 / 9,
-  GaussianBlur: 1 / 16,
-  Unsharpen: 1 / 9,
-  Emboss: 1,
-  EdgeEnhance: 1,
-  EdgeEnhanceMore: 1,
-  SobelHorizontal: 1,
-  SobelVertical: 1,
-  PrewittHorizontal: 1,
-  PrewittVertical: 1,
-  Laplacian: 1,
-  LaplacianOfGaussian: 1,
-  Laplacian3: 1,
-  Laplacian3OfGaussian: 1,
+  Identity: computeKernelWeight(ConvolutionKernel.Identity),
+  EdgeDetection: computeKernelWeight(ConvolutionKernel.EdgeDetection),
+  Sharpen: computeKernelWeight(ConvolutionKernel.Sharpen),
+  BoxBlur: computeKernelWeight(ConvolutionKernel.BoxBlur),
+  GaussianBlur: computeKernelWeight(ConvolutionKernel.GaussianBlur),
+  Unsharpen: computeKernelWeight(ConvolutionKernel.Unsharpen),
+  Emboss: computeKernelWeight(ConvolutionKernel.Emboss),
+  EdgeEnhance: computeKernelWeight(ConvolutionKernel.EdgeEnhance),
+  EdgeEnhanceMore: computeKernelWeight(ConvolutionKernel.EdgeEnhanceMore),
+  SobelHorizontal: computeKernelWeight(ConvolutionKernel.SobelHorizontal),
+  SobelVertical: computeKernelWeight(ConvolutionKernel.SobelVertical),
+  PrewittHorizontal: computeKernelWeight(ConvolutionKernel.PrewittHorizontal),
+  PrewittVertical: computeKernelWeight(ConvolutionKernel.PrewittVertical),
+  Laplacian: computeKernelWeight(ConvolutionKernel.Laplacian),
+  Laplacian3: computeKernelWeight(ConvolutionKernel.Laplacian3),
+  Laplacian3OfGaussian: computeKernelWeight(ConvolutionKernel.Laplacian3OfGaussian),
 }
 
