@@ -85,7 +85,7 @@ export class GLApp {
 
   public texture!: REGL.Texture2D;
   public fbos: REGL.Framebuffer2D[];
-  public kernels: KernelName[] = ['Emboss', 'EdgeEnhanceMore'];
+  public kernels: KernelName[] = [];
 
   public textureSize = 512;
 

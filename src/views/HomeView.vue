@@ -1,17 +1,19 @@
 <script lang="ts">
-import { ref } from 'vue'
+import { KernelNames } from '@/utils/convmatrix';
+import canvasFit from 'canvas-fit';
 import createREGL from 'regl/dist/regl.unchecked';
 import { GLApp } from '../components/gl-app';
 import { setReglInstance } from '../components/globals';
-import canvasFit from 'canvas-fit';
 import textureURL from '../assets/tex.png';
+import { ref } from 'vue'
 import Select from '../vue-components/select.vue';
-import { KernelNames } from '@/utils/convmatrix';
+import MultiSelect from '@/vue-components/multi-select.vue';
 
 export default {
   components: {
     Select,
-  },
+    MultiSelect,
+},
   setup() {
     const reglContainer = ref<HTMLDivElement|null>(null);
     const reglCanvas = ref<HTMLCanvasElement|null>(null);
@@ -30,6 +32,7 @@ export default {
   data() {
     return {
       kernel: KernelNames[0],
+      kernels: [KernelNames[0]],
     };
   },
   watch: {
@@ -37,6 +40,11 @@ export default {
       console.log('>> kernel', val);
       if (this.glApp) {
         this.glApp.kernel = val;
+      }
+    },
+    kernels: function (val) {
+      if (this.glApp) {
+        this.glApp.kernels = val;
       }
     },
   },
@@ -111,6 +119,9 @@ export default {
         <h3>Choose a convolution kernel</h3>
         <Select v-model="kernel"></Select>
       </div>
+      <div class="col">
+        <MultiSelect v-model:selectedSet="kernels"></MultiSelect>
+      </div>
     </div>
   </div>
   <div ref="reglContainer" id="regl-view">
@@ -135,6 +146,7 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem
 }
 
 .col {

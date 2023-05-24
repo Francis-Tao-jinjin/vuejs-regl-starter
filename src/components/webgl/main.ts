@@ -87,31 +87,44 @@ function main(regl: REGL, loader: REGLLoader) {
         // color: [0, 0, 0, 255],
         depth: 1,
       });
-
-      props.fbos[0].use(() => {
-        darwImgProcess({
-          fullscreen: 1,
-          texture: props.texture,
-          positions: rectPos,
-          color: rectColor,
-          kernel: processKernels[0],
-          kernelWeight: processKernelWeights[0],
-        } as GLImgProcessProps);
-      });
-      props.fbos[1].use(() => {
-        darwImgProcess({
-          fullscreen: 1,
-          texture: props.fbos[0],
-          positions: rectPos,
-          color: rectColor,
-          kernel: processKernels[1],
-          kernelWeight: processKernelWeights[1],
-        } as GLImgProcessProps);
-      });
+      for (let i = 0; i < processKernels.length; i++) {
+        const inputTexture = i === 0 ? props.texture : props.fbos[(i + 1) % 2];
+        props.fbos[i % 2].use(() => {
+          darwImgProcess({
+            fullscreen: 1,
+            texture: inputTexture,
+            positions: rectPos,
+            color: rectColor,
+            kernel: processKernels[i % 2],
+            kernelWeight: processKernelWeights[i % 2],
+          } as GLImgProcessProps);
+        });
+      }
+ 
+      // props.fbos[0].use(() => {
+      //   darwImgProcess({
+      //     fullscreen: 1,
+      //     texture: props.texture,
+      //     positions: rectPos,
+      //     color: rectColor,
+      //     kernel: processKernels[0],
+      //     kernelWeight: processKernelWeights[0],
+      //   } as GLImgProcessProps);
+      // });
+      // props.fbos[1].use(() => {
+      //   darwImgProcess({
+      //     fullscreen: 1,
+      //     texture: props.fbos[0],
+      //     positions: rectPos,
+      //     color: rectColor,
+      //     kernel: processKernels[1],
+      //     kernelWeight: processKernelWeights[1],
+      //   } as GLImgProcessProps);
+      // });
 
       darwImgProcess({
         flipY: 1,
-        texture: props.fbos[1],
+        texture: processKernels.length ? props.fbos[(processKernels.length + 1) % 2] : props.texture,
         positions: rectPos,
         color: rectColor,
         kernel: kernel,
