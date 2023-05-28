@@ -10,6 +10,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/img-processing',
+      name: 'img-processing',
+      component: () => import('../views/pages/ImageProcessing/ImageProcessing.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting

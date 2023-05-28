@@ -1,10 +1,7 @@
 import { type REGL,  type REGLLoader, safeProp } from "@/utils/regl-utils/regl";
 import _REGL from 'regl';
-import type { Camera } from "../camera";
-import type { Mesh } from "../mesh";
-// import glOutPutBuffer from "./outputGBuffer";
-// import glPointLight, { batchDrawPointLights } from "./pointLight";
-// import gldirectLight from "./directLight";
+import type { Camera } from "../../../../components/camera";
+import type { Mesh } from "../../../../components/mesh";
 
 import glTriangle from "./triangle/triangle";
 import glRectangle, { type GLRectangleProps} from "./quad/rect";

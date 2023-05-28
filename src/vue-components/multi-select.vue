@@ -60,6 +60,7 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  max-height: inherit;
 }
 
 .options-container {
@@ -67,7 +68,7 @@ export default {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  max-height: 200px;
+  max-height: inherit;
   overflow-y: scroll;
 }
 .selected-container {
@@ -75,7 +76,7 @@ export default {
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-end;
-  max-height: 200px;
+  max-height: inherit;
   overflow-y: scroll;
 }
 .option {

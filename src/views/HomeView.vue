@@ -2,12 +2,13 @@
 import { KernelNames } from '@/utils/convmatrix';
 import canvasFit from 'canvas-fit';
 import createREGL from 'regl/dist/regl.unchecked';
-import { GLApp } from '../components/gl-app';
+import { GLApp } from './pages/ImageProcessing/webgl/gl-app';
 import { setReglInstance } from '../components/globals';
 import textureURL from '../assets/tex.png';
 import { ref } from 'vue'
 import Select from '../vue-components/select.vue';
 import MultiSelect from '@/vue-components/multi-select.vue';
+import { RouterView } from 'vue-router';
 
 export default {
   components: {
@@ -17,36 +18,17 @@ export default {
   setup() {
     const reglContainer = ref<HTMLDivElement|null>(null);
     const reglCanvas = ref<HTMLCanvasElement|null>(null);
-    const reglInstance = ref(null);
-    const texturePreview = ref<HTMLImageElement|null>(null);
-    const glApp = ref<GLApp|null>(null);
-
     return {
       reglContainer,
       reglCanvas,
-      reglInstance,
-      glApp,
-      texturePreview,
     };
   },
-  data() {
-    return {
-      kernel: KernelNames[0],
-      kernels: [KernelNames[0]],
-    };
-  },
-  watch: {
-    kernel: function (val) {
-      console.log('>> kernel', val);
-      if (this.glApp) {
-        this.glApp.kernel = val;
-      }
-    },
-    kernels: function (val) {
-      if (this.glApp) {
-        this.glApp.kernels = val;
-      }
-    },
+  created() {
+    console.log('path:', window.location.pathname);
+    if (window.location.pathname === '/') {
+      // set the default path to /img-processing
+      this.$router.push('/img-processing');
+    }
   },
   mounted() {
     const canvas = this.$refs.reglCanvas as HTMLCanvasElement;
@@ -81,52 +63,31 @@ export default {
         preserveDrawingBuffer: true,
       },
     });
-    this.reglInstance = regl;
     setReglInstance(regl);
-    this.glApp = new GLApp({regl});
-
-    const texturePreview = (this.$refs.texturePreview as HTMLImageElement);
-    texturePreview.src = textureURL;
-    (new Promise((resolve) => {
-      texturePreview.onload = () => {
-        const texture = regl.texture(texturePreview);
-        if (this.glApp) {
-          this.glApp.texture = texture;
-        }
-        resolve(true);
-      }
-    })).then(() => {
-      this.onResoucesLoaded();
-    });
   },
   methods: {
-    onResoucesLoaded() {
-      console.log('>> onResoucesLoaded');
-      this.glApp?.startReglFrame();
-    }
   }
 }
 </script>
 
 <template>
-  <div class="ui-container">
-    <div class="row">
-      <div class="col">
-        <h2>Texture Preview</h2>
-        <img ref="texturePreview" alt="texture prview" id="texture-preview" width="125" height="125" />
-      </div>
-      <div class="col" style="place-self: flex-start;">
-        <h3>Choose a convolution kernel</h3>
-        <Select v-model="kernel"></Select>
-      </div>
-      <div class="col">
-        <MultiSelect v-model:selectedSet="kernels"></MultiSelect>
-      </div>
-    </div>
-  </div>
   <div ref="reglContainer" id="regl-view">
     <canvas ref="reglCanvas"/>
     <!-- Regl will automatically append a Canvas to the container, you can also create the Canvas by yourself -->
+  </div>
+  <div class="vue-ui-container">
+    <div class="header">
+      <div class="header-title">
+        <h2>WebGL Playground</h2>
+      </div>
+    </div>
+    <div class="content">
+      <div class="side-nav">
+        <router-link to="/img-processing">Image Processing</router-link>
+        <router-link to="/about">About</router-link>
+      </div>
+      <RouterView/>
+    </div>
   </div>
 </template>
 
@@ -136,23 +97,32 @@ export default {
   height: 100%;
 }
 
-.ui-container {
-  z-index: 2;
+.vue-ui-container {
   position: absolute;
+  top: 0;
+  width: 100%;
 }
 
-.row {
+.header-title {
+  background: rgb(240 248 255 / 50%);
+}
+
+.content {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem
 }
 
-.col {
+.side-nav {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  background-color: rgb(240 248 255 / 40%);
+}
+
+.side-nav a {
+  color: black;
+}
+
+.side-nav a:hover {
+  background-color: var(--color-background-mute);
 }
 </style>
