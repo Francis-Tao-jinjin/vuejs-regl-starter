@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/pages/ImageProcessing/ImageProcessing.vue')
     },
     {
+      path: '/transform2d',
+      name: 'transform2d',
+      component: () => import('../views/pages/transform2d/transform2d.vue'),
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting

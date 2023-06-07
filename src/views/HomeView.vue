@@ -27,7 +27,7 @@ export default {
     console.log('path:', window.location.pathname);
     if (window.location.pathname === '/') {
       // set the default path to /img-processing
-      this.$router.push('/img-processing');
+      this.$router.push('/transform2d');
     }
   },
   mounted() {
@@ -84,6 +84,7 @@ export default {
     <div class="content">
       <div class="side-nav">
         <router-link to="/img-processing">Image Processing</router-link>
+        <router-link to="/transform2d">Transform 2d</router-link>
         <router-link to="/about">About</router-link>
       </div>
       <RouterView/>
