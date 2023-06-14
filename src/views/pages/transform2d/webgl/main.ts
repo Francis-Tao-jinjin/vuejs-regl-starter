@@ -3,11 +3,16 @@ import _REGL from 'regl';
 import type { Camera } from "../../../../components/camera";
 import glRectangle from "./rectangle/rect";
 import { gen2DRectPositions } from "@/utils/gen-rect-pos";
-import type { vec2, vec4 } from "gl-matrix";
+import type { vec2, vec4, mat3 } from "gl-matrix";
+import type { RectMesh } from "./rect-mesh";
 
 export type GLMainProps = {
   camera: Camera;
   translation: vec2;
+  rotation: vec2;
+  scale: vec2;
+  transformMat: mat3;
+  rectMeshs: RectMesh[];
 };
 
 function main(regl: REGL, loader: REGLLoader) {
@@ -33,12 +38,12 @@ function main(regl: REGL, loader: REGLLoader) {
     true
   );
 
-  const rectColor = [Math.random(), Math.random(), Math.random(), 1] as vec4;
-  const shapePos = [
-    ...gen2DRectPositions(0, 0, 30, 150),
-    ...gen2DRectPositions(30, 0, 70, 30),
-    ...gen2DRectPositions(30, 60, 33, 30),
-  ];
+  // const rectColor = [Math.random(), Math.random(), Math.random(), 1] as vec4;
+  // const shapePos = [
+  //   ...gen2DRectPositions(0, 0, 30, 150),
+  //   ...gen2DRectPositions(30, 0, 70, 30),
+  //   ...gen2DRectPositions(30, 60, 33, 30),
+  // ];
 
   function drawMain(props: GLMainProps) {
     setup(props, (ctx) => {
@@ -47,13 +52,16 @@ function main(regl: REGL, loader: REGLLoader) {
         // color: [0, 0, 0, 255],
         depth: 1,
       });
-
-      drawRect({
-        positions: shapePos,
-        color: rectColor,
-        count: shapePos.length / 2,
-        translation: props.translation,
-      });
+      drawRect(props.rectMeshs);
+      // drawRect({
+      //   positions: shapePos,
+      //   color: rectColor,
+      //   count: shapePos.length / 2,
+      //   translation: props.translation,
+      //   rotation:props.rotation,
+      //   scale: props.scale,
+      //   transformMat: props.transformMat,
+      // });
     });
   }
 

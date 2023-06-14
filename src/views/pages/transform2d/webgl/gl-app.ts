@@ -2,7 +2,8 @@ import { type REGLLoader, createREGLCache } from '@/utils/regl-utils/regl';
 import type REGL from 'regl';
 import glMain, { type GLMainProps } from './main';
 import { Camera } from '../../../../components/camera';
-import type { vec2 } from 'gl-matrix';
+import { mat3, type vec2 } from 'gl-matrix';
+import type { RectMesh } from './rect-mesh';
 
 type GLAppOpts = {
   regl:createREGL.Regl;
@@ -19,7 +20,11 @@ export class GLApp {
   public camera: Camera;
   
   public translation: vec2 = [0, 0];
-  public rotation: number = 0;
+  public rotation: vec2 = [0, 1];
+  public scale: vec2 = [1, 1];
+  public transformMat = mat3.create();
+
+  public rectMeshs: RectMesh[] = [];
 
   constructor(opts:GLAppOpts) {
     this._regl = opts.regl;
@@ -65,6 +70,14 @@ export class GLApp {
     this._glDraw({
       camera: this.camera,
       translation: this.translation,
+      rotation: this.rotation,
+      scale: this.scale,
+      transformMat: this.transformMat,
+      rectMeshs: this.rectMeshs,
     });
+  }
+
+  public addRectMesh = (rectMesh: RectMesh) => {
+    this.rectMeshs.push(rectMesh);
   }
 }
